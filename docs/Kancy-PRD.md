@@ -4,12 +4,12 @@
 
 | | |
 |---|---|
-| **Version** | 1.0 (draft) |
-| **Date** | 2026-11-24 |
+| **Version** | 1.1 (contracts deployed) |
+| **Date** | 2026-11-24 (updated after Phase 1 and 2 build) |
 | **Target** | UHI11 Hookathon: "Active Management & Curation" (submit by Dec 3, 2026; Demo Day Dec 11) |
 | **Network** | Unichain Sepolia (live testnet, public users) |
 | **Inputs** | `Backed-Product-Brief.md` (product brief, formerly "Backed"), `GLOSSARY.md` |
-| **Status** | Contracts, bots, indexer: ready to build. Frontend visual design: waiting on brand assets (§15) |
+| **Status** | Contracts: built, tested (34 tests) and live on Unichain Sepolia (§18). Bots and indexer: next. Frontend visual design: waiting on brand assets (§15) |
 
 ---
 
@@ -66,6 +66,18 @@ The protocol makes three promises:
 | D18 | Market on testnet | Our own mock WETH/USDC pool plus a swap-traffic (arbitrage) bot |
 | D19 | Stack | Foundry · Next.js App Router · wagmi/viem · Ponder |
 
+### 3.1 Decisions made during the build (2026-11-24)
+
+| # | Decision | Choice | Why |
+|---|---|---|---|
+| D20 | How PositionBook talks to v4 | **Directly to PoolManager** (unlock callback), **not** through PositionManager | The hook's `sender` is whoever called `modifyLiquidity`. Through PositionManager the guard would see PositionManager and let every PositionManager user in |
+| D21 | Swap depth | Protocol-owned **base liquidity** position in PositionBook (testnet: 100 mWETH + 200k mUSDC, about ±45%) | Settlement pulls every Manager's liquidity, so without it there is nothing to sell WETH against. It counts as nobody's capital |
+| D22 | Rebalance swap | `rebalance(tickLower, tickUpper, sellWeth, amountIn)`: the bot computes the swap; the contract caps the swap price at oracle ± `maxDeviation` | Keeps the hard ratio maths offchain and the contract simple |
+| D23 | Self-only shortfall | A Self-only Manager below `requiredStake` after their first Epoch goes to **Grace**, not Paused | Swap costs on the first rebalance otherwise Paused anyone staking exactly `minStake`. Matches D8 |
+| D24 | Gains above target | Allocation is reset to the Curator's target each settlement, so profit above it comes back to the Vault as idle cash | Target = allocation keeps the model simple. Curators raise targets to compound |
+| D25 | Payout shortfall | If selling WETH can't cover a payout in full, the unpaid part stays as the Vault's (or Manager's) claim on the book | Swap costs never break settlement and never silently disappear |
+| D26 | One pool per hook | `beforeInitialize` allows only the owner, only once, only 0.30% / tick spacing 60 | The hook guards exactly one pool |
+
 ## 4. Users and roles
 
 | Role | Can | Cannot |
@@ -82,8 +94,8 @@ The protocol makes three promises:
  Depositors ──USDC──▶ KancyVault (one per Curator, ERC-4626-style shares)
                          │ allocation (applied at epoch boundaries)
                          ▼
- Managers ──stake──▶ ManagerRegistry ──▶ PositionBook (owns all v4 positions)
-   │ rebalance(id, tickLower, tickUpper)        │ PositionManager calls
+ Managers ──stake──▶ ManagerRegistry ──▶ PositionBook (owns all v4 positions + base liquidity)
+   │ rebalance(tickLower, tickUpper, sellWeth, amountIn)   │ direct PoolManager calls (unlock callback)
    └────────────────────────────────────────────▼
                                     Uniswap v4 PoolManager
                                     pool: mWETH / mUSDC + KancyHook
@@ -98,19 +110,21 @@ The protocol makes three promises:
 
 | Contract | Responsibility |
 |---|---|
-| `KancyHook` | v4 hook on the Kancy pool. `beforeAddLiquidity` / `beforeRemoveLiquidity`: revert unless `sender == PositionBook`. `afterSwap`: update fee and volume counters for the Scoreboard and emit events. |
-| `PositionBook` | Holds every v4 position NFT. Each Manager has exactly one range, which holds their stake plus their allocated capital. `rebalance()`: remove all liquidity → swap to the right ratio through the pool → add at the new ticks. It never sends tokens to anyone except a `KancyVault` or a Manager's own stake balance during settlement. |
+| `KancyHook` | v4 hook on the Kancy pool. `beforeInitialize`: owner only, one pool, 0.30% / 60 (D26). `beforeAddLiquidity` / `beforeRemoveLiquidity`: revert unless `sender == PositionBook`. `afterSwap`: update swap count and volume counters and emit `KancySwap`. `setPositionBook` can be called once. |
+| `PositionBook` | Owns every v4 position directly (no NFTs): each Manager has one range keyed by `salt = manager address`, plus leftover token inventory. Calls PoolManager itself (D20). `rebalance()`: remove all liquidity → optional swap capped at oracle ± `maxDeviation` → add the most liquidity the inventory allows at the new ticks (D22). Also holds the protocol base liquidity (D21). Tokens leave only through `payout` / `sweep`, and only the EpochSettler can call them. |
 | `ManagerRegistry` | Registration, stake balance, status (`SelfOnly`, `Active`, `Grace`, `Paused`), Epoch history. |
 | `KancyVault` | One per Curator, created through `VaultFactory`. Holds idle USDC, mints shares, stores Curator config (fees, Min First-loss Ratio, Max Allocation, Manager list, target Allocations), and runs the Withdrawal Queue. |
 | `VaultFactory` | Creates Vaults (anyone can call it). |
 | `EpochSettler` | `settleEpoch()`: values every Manager's position, applies the loss waterfall and fees, applies new Allocations, processes the queue, pays the keeper. |
-| `OracleAdapter` | Wraps the price feed and checks staleness and deviation (§8.4). |
-| `MockUSDC`, `MockWETH` | Testnet tokens with a capped public faucet. |
+| `OracleAdapter` | Wraps the price feed and checks staleness and deviation (§8.4). Gives the swap price limits. The owner can switch to a fallback feed. |
+| `MockToken` (mUSDC, mWETH) | Testnet tokens with a capped public faucet (once per address per day). The owner can mint to fund bots. |
+| `MockAggregator` | Testnet-only Chainlink-shaped feed for the demo mode (§8.2, §19). |
 
 ### 5.2 Why the vault owns positions instead of using hook-owned liquidity
 - If a Manager held their own NFT, they could withdraw the funds, which breaks Promise 1.
 - Fully hook-owned liquidity (OZ `BaseCustomAccounting`) needs custom delta accounting. Trail of Bits (Jul 2026) names this as the main source of hook incidents.
-- With the vault owning positions we use standard PositionManager calls, and the hook guard closes the side door. *Strong enough guarantee, lowest-risk code.* (ADR candidate.)
+- With the vault owning positions, PositionBook calls `PoolManager.modifyLiquidity` itself (standard unlock-callback pattern, no custom delta accounting), and the hook guard closes the side door. *Strong enough guarantee, lowest-risk code.* (ADR candidate.)
+- **Not through PositionManager (D20).** The hook sees the direct caller of `modifyLiquidity` as `sender`. If PositionBook went through PositionManager, `sender` would be PositionManager for everyone, and anyone could add or remove liquidity in the pool.
 
 ## 6. Accounting model
 
@@ -144,7 +158,9 @@ Because the stake is deployed capital (D11), the stake absorbs the full Loss on 
 - Idle USDC earns nothing in v1.
 
 ### 6.6 Rounding
-- Round toward the protocol, never toward the caller. Dust goes to the Vault.
+- Round toward the protocol, never toward the caller.
+- As built: the new stake is `V − Σ new allocations − Curator fees paid`, so rounding dust lands on the **stake**. Backer losses are rounded **up**, so a Vault can never keep value the book doesn't have.
+- Swap costs from settlement payouts (selling WETH for USDC) aren't counted in `V`. They show up in the Manager's next Epoch result.
 - Invariant tests cover every path (§12).
 
 ## 7. Lifecycles
@@ -166,11 +182,12 @@ Because the stake is deployed capital (D11), the stake absorbs the full Loss on 
 - Queued shares still carry that Epoch's P&L.
 
 ### 7.3 Manager
-1. `register(metadataURI)` plus a stake of at least `minStake` (1,000 USDC). Status becomes `SelfOnly`.
-2. At the next settlement a position opens with the stake only. The Manager then runs at least one full **Self-only** Epoch.
-3. After that, the status becomes `Active` and Curators can allocate to them.
-4. The Manager calls `rebalance(tickLower, tickUpper)` as often as they like. Limits: `maxRebalancesPerEpoch` (testnet: 12), and every tick must be a multiple of the tick spacing.
-5. `topUpStake()` can be called at any time.
+1. `register(metadataURI, stake, tickLower, tickUpper)` with a stake of at least `minStake` (1,000 USDC). Status becomes `SelfOnly`. The stake waits in the registry until the next settlement.
+2. At the next settlement the stake moves into PositionBook and the position opens. The Manager then runs at least one full **Self-only** Epoch.
+3. After that, the status becomes `Active` (or `Grace` if the stake fell below `requiredStake`, D23) and Curators can allocate to them.
+4. The Manager calls `rebalance(tickLower, tickUpper, sellWeth, amountIn)` as often as they like. Limits: `maxRebalancesPerEpoch` (testnet: 12), and every tick must be a multiple of the tick spacing.
+5. **New capital (stake, Allocations) arrives as USDC.** A position made from only USDC holds almost no liquidity in range, so the Manager (bot) should rebalance with a swap after each settlement.
+6. `topUpStake()` can be called at any time. It joins the stake at the next settlement and never changes the running Epoch's capital.
 
 ### 7.4 Grace and Pause
 - When `S_m < requiredStake_m` after settlement, the status becomes `Grace`, the Manager gets no new Allocations, and they can still rebalance.
@@ -180,7 +197,8 @@ Because the stake is deployed capital (D11), the stake absorbs the full Loss on 
 ### 7.5 Curator
 - `createVault(name, metadataURI, curatorCut, minRatio, maxAllocation)` through the factory.
 - `addManager(m)` (only `Active` Managers) and `removeManager(m)`. Removal takes effect at the next settlement, and the capital comes back as idle.
-- `setTargets([(m, amount)])` sets target Allocations, applied at the next settlement. Each target is capped by `maxAllocation`, by the Manager's stake (`S_m / minRatio`), and by the Vault's available capital.
+- `setTargets([(m, amount)])` sets target Allocations, applied at the next settlement. Each target is capped by `maxAllocation`, by the Manager's stake (`S_m / minRatio`), and by the Vault's available capital. If the targets add up to more than the available capital, they are all scaled down by the same proportion.
+- The Allocation is reset to the target at every settlement, so profit above the target comes back to the Vault as idle cash (D24). Grace Managers can't go above their current Allocation; Self-only, Paused and removed Managers get 0.
 - The Curator can change fees and limits; changes take effect **after 1 Epoch** so Depositors are warned in advance.
 
 ### 7.6 Stake withdrawal
@@ -215,6 +233,7 @@ The swap-traffic bot (§9.2) arbitrages the mock pool toward the oracle price. M
   - `centered`: keep a ±X% range around the oracle price, rebalance when the price leaves the inner band.
   - `bad`: a deliberately wide or mistimed range, or one-sided. Used by the losing demo Manager.
 - Respects `maxRebalancesPerEpoch` and shows logs and a status in the terminal.
+- Computes the swap for each rebalance itself (`sellWeth`, `amountIn`) so the position ends up near the right token ratio (D22), and rebalances after every settlement to put newly arrived USDC to work (§7.3).
 
 ### 9.2 Swap-traffic bot (protocol-operated)
 - Every N seconds: read the oracle price; if the pool price is off by more than the fee, arbitrage it back. Add random noise swaps to create fee volume.
@@ -278,7 +297,9 @@ Scoreboard records follow the Manager address across Vaults.
 | A Manager loses money on purpose by swapping badly | Allowed, but any loss falls on their stake first. Rebalance count is capped. Swaps inside rebalance have a slippage limit set against the oracle |
 | A Depositor dodges a Loss | Deposits and withdrawals only take effect at settlement |
 | A Curator runs off with funds | Curators have no transfer rights. Config changes have a 1-Epoch delay |
-| Settlement runs out of gas | Cap on Managers per Vault (e.g. 10) and Managers overall in v1. Settlement can be split into steps |
+| Settlement runs out of gas | Caps in v1: 10 Managers per Vault, 20 Managers, 20 Vaults. Settlement can be split into steps |
+| Settlement can't sell WETH (no depth) | Protocol base liquidity (D21). Payout shortfalls stay as claims instead of reverting (D25) |
+| Outside LPs bypass the guard through PositionManager | PositionBook calls PoolManager directly, so the hook can check `sender == PositionBook` (D20) |
 | Accounting mistakes | Foundry invariant tests: Σ claims = Σ assets; a backer only loses when the stake is 0; NAV never moves outside settlement; shares are conserved |
 | Reentrancy and v4 lock issues | Use the v4 unlock-callback pattern, CEI, ReentrancyGuard |
 
@@ -312,15 +333,15 @@ The visual design (palette, type, logo, components) **waits for the brand assets
 
 ## 16. Milestones (Nov 24 → Dec 3)
 
-| Date | Deliverable |
-|---|---|
-| Nov 24–25 | Confirm the oracle; scaffold the Foundry repo; mock tokens; pool plus a skeleton hook guard |
-| Nov 26–27 | PositionBook rebalance, ManagerRegistry, Vault deposit/queue, EpochSettler math, plus invariants |
-| Nov 28 | Deploy to Unichain Sepolia; swap-traffic bot; keeper |
-| Nov 29 | Manager bot (centered + bad strategies); Ponder indexer |
-| Nov 30–Dec 2 | Frontend (after brand assets) |
-| Dec 2 | Live end-to-end run of 5+ Epochs; fix bugs |
-| Dec 3 | Submit: demo video, README, live link |
+| Date | Deliverable | Status |
+|---|---|---|
+| Nov 24–25 | Confirm the oracle; scaffold the Foundry repo; mock tokens; pool plus a skeleton hook guard | ✅ Done Nov 24, deployed |
+| Nov 26–27 | PositionBook rebalance, ManagerRegistry, Vault deposit/queue, EpochSettler math, plus invariants | ✅ Done Nov 24: 34 tests incl. waterfall fuzz |
+| Nov 28 | Deploy to Unichain Sepolia; swap-traffic bot; keeper | ✅ Contracts deployed Nov 24. Bots: next |
+| Nov 29 | Manager bot (centered + bad strategies); Ponder indexer | |
+| Nov 30–Dec 2 | Frontend (after brand assets) | |
+| Dec 2 | Live end-to-end run of 5+ Epochs; fix bugs | |
+| Dec 3 | Submit: demo video, README, live link | |
 
 ## 17. Success criteria
 - At least 3 outside wallets complete deposit → withdrawal on testnet.
@@ -342,12 +363,34 @@ The visual design (palette, type, logo, components) **waits for the brand assets
 
 RPC: `https://sepolia.unichain.org`
 
+### 18.1 Kancy deployment (Unichain Sepolia, deployed 2026-11-24)
+Machine-readable copy: `contracts/deployments/unichain-sepolia.json`.
+
+| Contract | Address |
+|---|---|
+| mUSDC | `0xba38ACbD29e5122695CdB25A6014034Fd319D5Fe` |
+| mWETH | `0x8916856F8a5FdB5d006725582145a57B36682BAe` |
+| KancyHook | `0x00f29BD8aEe149bC0d1414970e778926FEcD2a40` |
+| Pool ID (mWETH/mUSDC, 0.30%, 60) | `0x17ad3f96e53909e4f698e0439770294e45a47e0ab22be4c285902b4fb11e2ea5` |
+| OracleAdapter | `0x8e33Fd0c463afb4D3b856c0B92017E46a53eF7A7` |
+| ManagerRegistry | `0x6A1841F872414f40BDdEc4d1Fe026E0d34Ad7055` |
+| PositionBook | `0x4c0DE140F5Dad5Edfd597B9fc33E1EEDF35591c2` |
+| EpochSettler | `0x97438bA98839DaD52F5869e662481B72B41F4635` |
+| VaultFactory | `0x9Fe33886698bbaDEe07e5e85b63DB88179bf4BD7` |
+
+- The pool started at the Chainlink price of $1,678.72 (tick −202,063).
+- `hook.positionBook()` is set to the PositionBook above. **It can't be changed:** a new PositionBook means a new hook and a new pool.
+- Base liquidity: 100 mWETH + 200k mUSDC on ticks −206,520 to −197,460. The settler holds 5,000 mUSDC for keeper bounties.
+
 ## 19. Open items
 1. ~~Oracle address~~ and ~~v4 addresses~~: verified (§18).
 2. The feed updates rarely (0.5% deviation / 24 h heartbeat). The swap-traffic bot follows it, so pool prices move only in steps of 0.5% or more. That may be too quiet for a 1 h-Epoch demo; consider a demo-only `MockAggregator` mode as a switch (§8.2).
 3. Choose the wallet-connect library and the charting library (with the frontend work).
 4. Choose one sponsor-prize integration, or none.
 5. Brand assets → §15.
+6. ~~PositionManager vs the hook guard~~: resolved (D20).
+7. The base liquidity's size (D21) sets how much a settlement can sell without slipping. Watch slippage as total capital grows, and top up the base if needed.
+8. If the swap-traffic bot is slow, the pool drifts away from the oracle and `settleEpoch()` reverts on the 5% deviation check. The keeper should arbitrage before settling, or retry.
 
 ## 20. References
 - Uniswap v4 custom accounting: https://docs.uniswap.org/contracts/v4/guides/custom-accounting
