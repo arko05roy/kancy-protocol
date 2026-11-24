@@ -10,5 +10,15 @@
   "poolFee": 3000,
   "tickSpacing": 60,
   "initTick": -202063,
-  "initOraclePrice": "1678.71940160"
+  "initOraclePrice": "1678.71940160",
+  "oracleAdapter": "0x8e33Fd0c463afb4D3b856c0B92017E46a53eF7A7",
+  "managerRegistry": "0x6A1841F872414f40BDdEc4d1Fe026E0d34Ad7055",
+  "positionBook": "0x4c0DE140F5Dad5Edfd597B9fc33E1EEDF35591c2",
+  "epochSettler": "0x97438bA98839DaD52F5869e662481B72B41F4635",
+  "vaultFactory": "0x9Fe33886698bbaDEe07e5e85b63DB88179bf4BD7",
+  "epochLength": 3600,
+  "baseLiquidity": {
+    "tickLower": -206520,
+    "tickUpper": -197460
+  }
 }
