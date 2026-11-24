@@ -1,0 +1,14 @@
+{
+  "chainId": 1301,
+  "deployer": "0xb8E078586b22CcbCcCB22cC0237a742C92c3140A",
+  "poolManager": "0x00b036b58a818b1bc34d502d3fe730db729e62ac",
+  "oracleEthUsd": "0xd9c93081210dFc33326B2af4C2c11848095E6a9a",
+  "mUSDC": "0xba38ACbD29e5122695CdB25A6014034Fd319D5Fe",
+  "mWETH": "0x8916856F8a5FdB5d006725582145a57B36682BAe",
+  "kancyHook": "0x00f29BD8aEe149bC0d1414970e778926FEcD2a40",
+  "poolId": "0x17ad3f96e53909e4f698e0439770294e45a47e0ab22be4c285902b4fb11e2ea5",
+  "poolFee": 3000,
+  "tickSpacing": 60,
+  "initTick": -202063,
+  "initOraclePrice": "1678.71940160"
+}
