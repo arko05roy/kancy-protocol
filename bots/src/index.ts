@@ -4,6 +4,7 @@ import { keeperStep } from "./keeper.js";
 import { trafficSetup, trafficStep } from "./traffic.js";
 import { balances, fmtUsd, readPrices } from "./pool.js";
 import { settlerAbi, erc20Abi } from "./abi.js";
+import { managerSetup, managerStep, type Strategy } from "./manager.js";
 
 const cmd = process.argv[2] ?? "run";
 
@@ -59,7 +60,25 @@ async function main() {
       await trafficStep(t);
     });
   }
-  console.error("usage: tsx src/index.ts [run|traffic|keeper|status]");
+  if (cmd === "managers") {
+    // demo managers: MANAGER_KEY_GOOD (centered) and MANAGER_KEY_BAD (bad); any subset
+    const set = [
+      { label: "good", env: "MANAGER_KEY_GOOD", strategy: "centered" as Strategy },
+      { label: "bad", env: "MANAGER_KEY_BAD", strategy: "bad" as Strategy },
+    ].filter((m) => process.env[m.env]).map((m) => ({ ...m, s: walletFor(config.managerKey(m.env)) }));
+    if (!set.length) throw new Error("set MANAGER_KEY_GOOD and/or MANAGER_KEY_BAD");
+    for (const m of set) { log("boot", `${m.label} manager ${m.s.account.address}`); await managerSetup(m.s, m.label); }
+    return loop("managers", async () => { for (const m of set) await managerStep(m.s, m.strategy, m.label).catch((e) => log(m.label, `error: ${(e as Error).message.split("\n")[0]}`)); });
+  }
+  if (cmd === "manager") {
+    // single manager for anyone running the open-source bot: MANAGER_KEY + MANAGER_STRATEGY=centered|bad
+    const strategy = (process.env.MANAGER_STRATEGY ?? "centered") as Strategy;
+    const m = walletFor(config.managerKey("MANAGER_KEY"));
+    log("boot", `manager ${m.account.address} strategy ${strategy}`);
+    await managerSetup(m, "manager");
+    return loop("manager", () => managerStep(m, strategy, "manager"));
+  }
+  console.error("usage: tsx src/index.ts [run|traffic|keeper|managers|manager|status]");
   process.exit(1);
 }
 main();

@@ -30,3 +30,18 @@ export const routerAbi = parseAbi([
   "struct TestSettings { bool takeClaims; bool settleUsingBurn; }",
   "function swap(PoolKey key, SwapParams params, TestSettings testSettings, bytes hookData) payable returns (int256 delta)",
 ]);
+
+export const registryAbi = parseAbi([
+  "struct Manager { uint8 status; int24 tickLower; int24 tickUpper; uint32 rebalanceCount; uint64 rebalanceEpoch; uint256 stake; uint256 pendingStake; uint256 stakeWithdrawRequest; string metadataURI; }",
+  "function getManager(address) view returns (Manager)",
+  "function maxRebalancesPerEpoch() view returns (uint32)",
+  "function minStake() view returns (uint256)",
+  "function register(string metadataURI, uint256 stakeAmount, int24 tickLower, int24 tickUpper)",
+  "function topUpStake(uint256 amount)",
+]);
+
+export const bookFullAbi = parseAbi([
+  "function books(address) view returns (uint128 liquidity, int24 tickLower, int24 tickUpper, uint256 weth, uint256 usdc)",
+  "function value(address, uint256) view returns (uint256)",
+  "function rebalance(int24 tickLower, int24 tickUpper, bool sellWeth, uint256 amountIn)",
+]);

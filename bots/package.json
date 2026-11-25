@@ -8,6 +8,8 @@
     "traffic": "tsx src/index.ts traffic",
     "keeper": "tsx src/index.ts keeper",
     "start": "tsx src/index.ts run",
+    "managers": "tsx src/index.ts managers",
+    "manager": "tsx src/index.ts manager",
     "status": "tsx src/index.ts status",
     "typecheck": "tsc --noEmit"
   },

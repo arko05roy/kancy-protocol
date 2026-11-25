@@ -30,6 +30,9 @@ export async function trafficStep(s: Signer) {
       ? (oraclePrice * BigInt(10_000 - band)) / 10_000n
       : (oraclePrice * BigInt(10_000 + band)) / 10_000n,
   );
+  // skip if the pool already sits past the band (price limit would be on the wrong side of the current price)
+  const { sqrt } = await readPrices();
+  if (sellWeth ? limit >= sqrt : limit <= sqrt) return log("noise", "pool outside noise band, leaving it to the arb");
   const hash = await swap(s, sellWeth, amountIn, limit);
   log("noise", `${sellWeth ? "sell mWETH" : "sell mUSDC"} ~$${usd.toFixed(0)} tx ${hash} (oracle ${fmtUsd(oraclePrice)})`);
 }
