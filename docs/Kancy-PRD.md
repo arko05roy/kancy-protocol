@@ -337,7 +337,7 @@ The visual design (palette, type, logo, components) **waits for the brand assets
 |---|---|---|
 | Nov 24–25 | Confirm the oracle; scaffold the Foundry repo; mock tokens; pool plus a skeleton hook guard | ✅ Done Nov 24, deployed |
 | Nov 26–27 | PositionBook rebalance, ManagerRegistry, Vault deposit/queue, EpochSettler math, plus invariants | ✅ Done Nov 24: 34 tests incl. waterfall fuzz |
-| Nov 28 | Deploy to Unichain Sepolia; swap-traffic bot; keeper | ✅ Contracts deployed Nov 24. Bots: next |
+| Nov 28 | Deploy to Unichain Sepolia; swap-traffic bot; keeper | ✅ Contracts deployed Nov 24; swap-traffic bot and keeper done Nov 25 |
 | Nov 29 | Manager bot (centered + bad strategies); Ponder indexer | ✅ Done Nov 25: bots in `bots/` (swap-traffic, keeper, manager; 2 demo managers registered live), indexer in `indexer/` (Ponder, GraphQL). Manager-epoch handlers verified after first live settlement |
 | Nov 30–Dec 2 | Frontend (after brand assets) | |
 | Dec 2 | Live end-to-end run of 5+ Epochs; fix bugs | |
