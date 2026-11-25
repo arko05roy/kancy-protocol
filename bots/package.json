@@ -1,0 +1,22 @@
+{
+  "name": "kancy-bots",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Kancy Protocol protocol-operated bots: swap-traffic (arbitrage + noise) and epoch keeper",
+  "scripts": {
+    "traffic": "tsx src/index.ts traffic",
+    "keeper": "tsx src/index.ts keeper",
+    "start": "tsx src/index.ts run",
+    "status": "tsx src/index.ts status",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
