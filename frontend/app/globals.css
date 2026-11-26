@@ -606,7 +606,7 @@ details summary:hover { color: var(--star); }
   background: linear-gradient(180deg, #fff 35%, rgba(244,244,242,.45)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 .dk-num em { font-style: normal; font-weight: 400; font-size: .45em; letter-spacing: -0.03em; }
 .dk-word { font-size: clamp(90px, 14vw, 220px); }
-.dk-say { margin-top: clamp(20px, 3vh, 36px); font: 500 clamp(22px, 2.4vw, 38px)/1.2 var(--sans); letter-spacing: -0.025em; color: var(--text-2); max-width: 26ch; }
+.dk-say { margin-top: clamp(20px, 3vh, 36px); font: 500 clamp(22px, 2.4vw, 38px)/1.2 var(--sans); letter-spacing: -0.025em; color: var(--text-2); max-width: 34ch; }
 .dk-say b { color: var(--star); font-weight: 600; }
 .dk-dim { color: #6e6e6a; }
 .dk-strike { color: var(--ash); margin: 0 0 8px; }
@@ -773,3 +773,6 @@ html:has(.dk-print) body > *:not(.dk):not(:has(.dk)) { display: none; }
 .dk-print .dk-fall { height: 640px; }
 .dk-print .dk-num { font-size: 260px; }
 .dk-print .dk-say { font-size: 34px; }
+.dk-two .dk-num { font-size: clamp(100px, 14vw, 230px); }
+.dk-say .dk-line > span { text-wrap: balance; }
+.dk-print .dk-two .dk-num { font-size: 210px; }

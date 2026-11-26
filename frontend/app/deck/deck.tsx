@@ -317,8 +317,8 @@ export function Deck({ print = false }: { print?: boolean }) {
         <Slide n={12} label="Why now" source="Morpho API, Nov 2026 · Atrium UHI11 brief">
           <div className="dk-two">
             <div>
-              <Num><Count to={71} /><em> of </em>147</Num>
-              <p className="dk-say"><Line d={0.3}>curated vaults over $1M charge <b>0% fees</b>.</Line><Line d={0.4}>Curators need something new to earn on.</Line></p>
+              <Num><Count to={48} />%</Num>
+              <p className="dk-say"><Line d={0.3}>of curated vaults over $1M (71 of 147)</Line><Line d={0.4}>charge <b>zero</b> performance fee.</Line><Line d={0.5}><span className="dk-dim">Curators need something new to earn on.</span></Line></p>
             </div>
             <Fade d={0.6} className="dk-eco">
               <div><small>Uniswap v4</small><p>~$1.05B TVL · 46% of volume</p></div>
