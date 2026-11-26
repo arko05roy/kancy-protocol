@@ -524,7 +524,7 @@ details summary:hover { color: var(--star); }
   .live dl > div:nth-child(n+4) { border-top: 1px solid var(--line); }
   .timeline { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
 }
-@media (max-width: 900px) {
+@media screen and (max-width: 900px) {
   .shell { grid-template-columns: minmax(0, 1fr); }
   .side { position: fixed; left: 0; top: 0; bottom: 0; width: 264px; transform: translateX(-100%); transition: transform .3s var(--ease); }
   .shell-open .side { transform: none; }
@@ -534,7 +534,7 @@ details summary:hover { color: var(--star); }
   .topbar-crumb { display: none; }
   .shell .page { padding: 24px 16px 0; }
 }
-@media (max-width: 1020px) {
+@media screen and (max-width: 1020px) {
   .hero { grid-template-columns: minmax(0, 1fr); padding-top: 32px; padding-bottom: 140px; min-height: 0; }
   .hero-orbit { height: 420px; min-height: 0; }
   .hero-temple { width: 70%; }
@@ -543,7 +543,7 @@ details summary:hover { color: var(--star); }
   .head-art { display: none; }
   .split-art { max-width: 420px; margin: 0 auto; }
 }
-@media (max-width: 640px) {
+@media screen and (max-width: 640px) {
   body { font-size: 14.5px; }
   .live { margin: -40px var(--gut) 0; }
   .live dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -741,7 +741,7 @@ details summary:hover { color: var(--star); }
 .dk-fall-burn { height: 90%; transform-origin: top; }
 .dk-split3 > div { transform-origin: left; }
 
-@media (max-width: 900px) {
+@media screen and (max-width: 900px) {
   .dk-two, .dk-grid3 { grid-template-columns: minmax(0, 1fr); }
   .dk-live { grid-template-columns: 1fr 1fr; }
   .dk-cover-foot { gap: 12px; flex-direction: column; align-items: center; }
@@ -767,3 +767,9 @@ body:has(.dk-print) .sky { display: none; }
 body:has(.dk-print) { width: 1920px; }
 .dk-print .dk-slide:last-child { break-after: auto; page-break-after: auto; }
 html:has(.dk-print) body > *:not(.dk):not(:has(.dk)) { display: none; }
+.dk-print .dk-two { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+.dk-print .dk-two .dk-cols, .dk-print .dk-gap .dk-cols { height: 600px; }
+.dk-print .dk-cols { height: 520px; }
+.dk-print .dk-fall { height: 640px; }
+.dk-print .dk-num { font-size: 260px; }
+.dk-print .dk-say { font-size: 34px; }
