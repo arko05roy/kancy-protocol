@@ -6,7 +6,6 @@ import { formatUnits } from "viem";
 import { useAccount, useReadContracts } from "wagmi";
 import { RangeBar } from "@/components/chart";
 import { Art } from "@/components/fx";
-import { PixelText } from "@/components/pixel-text";
 import { ChainError, Empty, Field, Loading, PageHead, Panel, Stat, StatusBadge, TxButton } from "@/components/ui";
 import { ConnectPrompt } from "@/components/wallet";
 import { book, registry, settler, Status, TICK_SPACING } from "@/lib/contracts";
@@ -24,7 +23,7 @@ export function Console() {
 
   return (
     <div className="page">
-      <PageHead title={<PixelText lines={["Manage"]} />}
+      <PageHead title="Manage" eyebrow="Manager console"
         lead="Post a first-loss stake, choose a price range and move it. The vault owns the position; you only steer it."
         art={<Art name="torii" className="head-art" />} />
       {!address ? (

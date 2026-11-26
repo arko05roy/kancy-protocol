@@ -6,7 +6,7 @@ import { chain } from "@/lib/contracts";
 const base = darkTheme({
   accentColor: "#f4f4f2",
   accentColorForeground: "#000000",
-  borderRadius: "medium",
+  borderRadius: "large",
   overlayBlur: "small",
   fontStack: "system",
 });
@@ -25,7 +25,7 @@ export const walletTheme: Theme = {
     profileForeground: "#0a0a0a",
     connectionIndicator: "#f4f4f2",
   },
-  fonts: { body: "var(--font-mono), ui-monospace, monospace" },
+  fonts: { body: "var(--font-sans), ui-sans-serif, system-ui, sans-serif" },
   shadows: { ...base.shadows, dialog: "0 0 70px rgba(244,244,242,0.1)" },
 };
 

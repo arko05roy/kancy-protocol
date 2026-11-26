@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
 import { useAccount, useReadContracts } from "wagmi";
 import { Art } from "@/components/fx";
-import { PixelText } from "@/components/pixel-text";
 import { ChainError, Field, Loading, PageHead, Panel, StatusBadge, TxButton } from "@/components/ui";
 import { factory, Status, vaultAt } from "@/lib/contracts";
 import { parseAmount, usd } from "@/lib/format";
@@ -51,7 +50,7 @@ export function Curate() {
 
   return (
     <div className="page">
-      <PageHead title={<PixelText lines={["Curate"]} />}
+      <PageHead title="Curate" eyebrow="Curator tools"
         lead="Create a vault, decide how much first-loss you demand, then approve Managers and size their allocations."
         art={<Art name="orbit" className="head-art" />} />
       {isError && <ChainError />}

@@ -2,7 +2,6 @@
 
 import { useBalance, useAccount, useReadContracts } from "wagmi";
 import { Art, Reveal, Tilt } from "@/components/fx";
-import { PixelText } from "@/components/pixel-text";
 import { PageHead, Star, TxButton } from "@/components/ui";
 import { FAUCET_ETH, usdc, weth } from "@/lib/contracts";
 import { amount, duration } from "@/lib/format";
@@ -47,7 +46,7 @@ export function Faucet() {
   const gas = useBalance({ address, query: { enabled: !!address } });
   return (
     <div className="page">
-      <PageHead title={<PixelText lines={["Faucet"]} />}
+      <PageHead title="Faucet" eyebrow="Testnet"
         lead="Free testnet tokens. They have no value. Everything in Kancy is counted in mUSDC."
         art={<Art name="galaxy" className="head-art" />} />
       <div className="cards cards-3">

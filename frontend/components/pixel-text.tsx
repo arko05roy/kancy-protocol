@@ -10,7 +10,7 @@ export function PixelText({ lines, rows = 26, maxCell = 3.2, className = "", as:
   rows?: number; // pixel height of one line
   maxCell?: number; // largest on-screen size of one pixel
   className?: string;
-  as?: "h1" | "h2" | "p";
+  as?: "h1" | "h2" | "p" | "span";
 }) {
   const wrap = useRef<HTMLSpanElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);

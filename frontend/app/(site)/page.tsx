@@ -7,7 +7,7 @@ import { Art, CountUp, Reveal, Tilt } from "@/components/fx";
 import { LossLab } from "@/components/loss-lab";
 import { PixelText } from "@/components/pixel-text";
 import { ResultCard } from "@/components/result-card";
-import { ButtonLink, Star } from "@/components/ui";
+import { ButtonLink, SectionHead } from "@/components/ui";
 import { toUsd } from "@/lib/format";
 import { useManagers, useProtocol, useVaults } from "@/lib/hooks";
 import { useLatestResults } from "@/lib/indexer";
@@ -34,18 +34,29 @@ function Hero() {
   return (
     <section className="hero">
       <div className="hero-copy">
-        <PixelText lines={["Managed", "liquidity with", "first-loss cover"]} rows={20} maxCell={3.8} className="hero-title" />
+        <Link href="/managers" className="hero-pill"><i className="dot" aria-hidden="true" />Live on Unichain Sepolia<span className="hero-pill-sep" />See the scoreboard <span className="arrow">→</span></Link>
+        <h1 className="hero-title">
+          <span className="hero-title-sans">Managed liquidity,</span>
+          <PixelText as="span" lines={["first-loss cover"]} rows={20} maxCell={4.2} className="hero-title-pixel" />
+        </h1>
         <Reveal delay={0.35}>
-          <p className="lead">Managers stake their own USDC to run Uniswap v4 liquidity. Losses come out of that stake before they reach depositors.</p>
+          <p className="lead hero-lead">
+            Deposit USDC into vaults that provide Uniswap v4 liquidity through independent strategy Managers.
+            Every Manager puts up their own capital as <b>first-loss cover</b>: if a strategy loses money, their stake pays before a cent of your deposit does.
+          </p>
           <div className="actions">
-            <ButtonLink href="/vaults" solid>Deposit into a vault</ButtonLink>
-            <ButtonLink href="/manage">Run a manager</ButtonLink>
+            <ButtonLink href="/dashboard" solid>Launch app</ButtonLink>
+            <ButtonLink href="/#cover">See how cover works</ButtonLink>
           </div>
+          <ul className="hero-proof">
+            {["Manager stake absorbs losses first", "Valued at the Chainlink price", "Vault owns every position"].map((t) => (
+              <li key={t}><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" /></svg>{t}</li>
+            ))}
+          </ul>
         </Reveal>
       </div>
       <div className="hero-orbit">
         <OrbitScene label="A pixel galaxy inside two rings: depositor capital protected by the Manager stake" />
-        <p className="orbit-hint" aria-hidden="true"><Star size={9} /> drag to turn it</p>
       </div>
       <Art name="mountains" className="hero-mountains" depth={30} />
       <Art name="acropolis" className="hero-temple" depth={16} />
@@ -69,7 +80,6 @@ function LiveStats() {
   ];
   return (
     <section className="live" aria-label="Live protocol numbers">
-      <p className="live-tag"><i className="dot" />Live from Unichain Sepolia</p>
       <dl>
         {items.map(([label, value, digits, prefix]) => (
           <div key={label}>
@@ -89,8 +99,10 @@ function Latest() {
   return (
     <section className="section">
       <Reveal>
-        <h2 className="dither">Latest settlements</h2>
-        <p className="lead">Written by the contracts at the end of each epoch.</p>
+        <div className="section-head-row">
+          <SectionHead eyebrow="Track record" title="Latest settlements" lead="Written by the contracts at the end of each epoch. Nobody can edit them." />
+          <Link href="/managers" className="text-link">Full scoreboard <span className="arrow">→</span></Link>
+        </div>
       </Reveal>
       <div className="cards cards-4">
         {rows.map((r, i) => (
@@ -127,24 +139,23 @@ export default function Home() {
       <Hero />
       <LiveStats />
 
-      <section className="section" id="loss">
+      <section className="section" id="cover">
         <Reveal>
-          <h2 className="dither">Try to lose the depositor’s money</h2>
-          <p className="lead">Drag the loss. The contracts apply this exact waterfall at every settlement.</p>
+          <SectionHead eyebrow="How the cover works" title="Try to lose the depositor’s money" lead="Drag the loss. The contracts apply this exact waterfall at every settlement." />
         </Reveal>
         <LossLab />
       </section>
 
       <Latest />
 
-      <section className="section">
-        <Reveal><h2 className="dither">Pick your seat</h2></Reveal>
+      <section className="section" id="roles">
+        <Reveal><SectionHead eyebrow="Three roles" title="Pick your seat" lead="Deposit, manage or curate. Each role has its own console, and all three settle on the same schedule." /></Reveal>
         <div className="cards cards-3">
           {ROLES.map((r, i) => (
             <Reveal key={r.who} delay={i * 0.1}>
               <Tilt className="role">
                 <div className="role-art"><img src={`/art/${r.art}.png`} alt="" /></div>
-                <p className="role-who"><Star size={10} />{r.who}</p>
+                <p className="role-who">{r.who}</p>
                 <h3>{r.does}</h3>
                 <p>{r.body}</p>
                 <Link href={r.href} className="role-cta">{r.cta} <span className="arrow">→</span></Link>
@@ -154,16 +165,15 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section" id="epoch">
         <Reveal>
-          <h2 className="dither">One epoch, start to finish</h2>
-          <p className="lead">One hour on testnet. Everything that changes money happens at the boundary.</p>
+          <SectionHead eyebrow="Lifecycle" title="One epoch, start to finish" lead="One hour on testnet. Everything that changes money happens at the boundary." />
         </Reveal>
         <ol className="timeline">
           {EPOCH.map(([title, body], i) => (
             <li key={title}>
               <Reveal delay={i * 0.1}>
-                <span className="node"><Star size={14} /></span>
+                <span className="node">{String(i + 1).padStart(2, "0")}</span>
                 <h3>{title}</h3>
                 <p>{body}</p>
               </Reveal>
@@ -172,25 +182,31 @@ export default function Home() {
         </ol>
       </section>
 
-      <section className="section split-section">
+      <section className="section split-section" id="builders">
         <Reveal>
-          <h2 className="dither">The Manager bot is open source</h2>
-          <p className="lead">Run the centered range strategy with your own key, or fork it and write a better one.</p>
+          <SectionHead eyebrow="For builders" title="The Manager bot is open source" lead="Run the centered range strategy with your own key, or fork it and write a better one." />
           <Terminal />
         </Reveal>
         <Art name="globe" className="split-art" depth={26} />
       </section>
 
       <section className="closing">
+        <div className="closing-card">
         <Art name="clouds" className="closing-cloud closing-left" depth={34} />
         <Art name="clouds" className="closing-cloud closing-right" depth={18} />
         <Reveal>
-          <PixelText as="h2" lines={["Fund a vault.", "The manager", "pays first."]} rows={24} maxCell={3.4} />
+          <p className="eyebrow">Get started</p>
+          <h2 className="hero-title closing-title">
+            <span className="hero-title-sans">Fund a vault.</span>
+            <PixelText as="span" lines={["the manager pays first"]} rows={18} maxCell={3.2} className="hero-title-pixel" />
+          </h2>
+          <p className="lead">Grab free testnet tokens, pick a vault and watch your first settlement land within the hour.</p>
           <div className="actions">
-            <ButtonLink href="/faucet" solid>Get testnet tokens</ButtonLink>
-            <ButtonLink href="/managers">Read the scoreboard</ButtonLink>
+            <ButtonLink href="/dashboard" solid>Launch app</ButtonLink>
+            <ButtonLink href="/faucet">Get testnet tokens</ButtonLink>
           </div>
         </Reveal>
+        </div>
       </section>
     </>
   );

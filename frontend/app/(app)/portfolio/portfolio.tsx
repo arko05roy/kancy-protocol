@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useAccount, useReadContracts } from "wagmi";
 import { Art, Reveal, Tilt } from "@/components/fx";
-import { PixelText } from "@/components/pixel-text";
 import { ButtonLink, ChainError, Empty, IndexerNote, Loading, PageHead, Stat, TxButton } from "@/components/ui";
 import { ConnectPrompt } from "@/components/wallet";
 import { vaultAt } from "@/lib/contracts";
@@ -52,7 +51,7 @@ export function Portfolio() {
 
   return (
     <div className="page">
-      <PageHead title={<PixelText lines={["Portfolio"]} />}
+      <PageHead title="Portfolio" eyebrow="Your account"
         lead="What you hold, what it has made, and how much Manager stake has taken losses so deposits did not have to."
         art={<Art name="planet" className="head-art" />} />
       {!address ? (

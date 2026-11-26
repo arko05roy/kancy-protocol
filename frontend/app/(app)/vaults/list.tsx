@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Art, Reveal, Tilt } from "@/components/fx";
-import { PixelText } from "@/components/pixel-text";
 import { ButtonLink, ChainError, Empty, Loading, PageHead, Split, Star } from "@/components/ui";
 import { usd } from "@/lib/format";
 import { useVaults } from "@/lib/hooks";
@@ -11,7 +10,7 @@ export function VaultList() {
   const { vaults, isError } = useVaults();
   return (
     <div className="page">
-      <PageHead title={<PixelText lines={["Vaults"]} />}
+      <PageHead title="Vaults" eyebrow="Deposit"
         lead="A curator pools deposits and splits them between Managers. Each Manager’s stake absorbs losses before the vault does."
         art={<Art name="column" className="head-art" />}>
         <div className="actions"><ButtonLink href="/curate">Create a vault</ButtonLink></div>

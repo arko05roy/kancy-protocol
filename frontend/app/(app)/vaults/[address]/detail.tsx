@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { formatUnits, type Address as Hex } from "viem";
 import { useAccount, useReadContracts } from "wagmi";
 import { LineChart } from "@/components/chart";
-import { PixelText } from "@/components/pixel-text";
 import { Address, ChainError, Empty, Field, IndexerNote, Loading, PageHead, Panel, Stat, StatusBadge, TxButton } from "@/components/ui";
 import { factory, registry, vaultAt } from "@/lib/contracts";
 import { amount as fmtAmount, parseAmount, signed, usd, when } from "@/lib/format";
@@ -58,7 +57,7 @@ function Vault({ vault }: { vault: VaultRow }) {
 
   return (
     <div className="page">
-      <PageHead title={<PixelText lines={[vault.name || "Vault"]} rows={24} maxCell={3.2} />}
+      <PageHead title={vault.name || "Vault"} eyebrow="Vault"
         lead={<>Curated by <Address value={vault.curator} /> · vault <Address value={vault.address} /></>} />
       <dl className="stats">
         <Stat label="Vault value" value={`$${usd(vault.nav)}`} />

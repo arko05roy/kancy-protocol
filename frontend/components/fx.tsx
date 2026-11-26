@@ -29,9 +29,9 @@ export function Sky() {
         cv.height = h * dpr;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
-      stars = Array.from({ length: Math.round((w * h) / 9000) }, () => ({
+      stars = Array.from({ length: Math.round((w * h) / 14000) }, () => ({
         x: Math.random() * w, y: Math.random() * h, z: 0.2 + Math.random() * 0.8,
-        p: Math.random() * 6.28, big: Math.random() < 0.045,
+        p: Math.random() * 6.28, big: Math.random() < 0.02,
       }));
       draw(0);
     };
@@ -52,12 +52,12 @@ export function Sky() {
         const x = (((s.x - mouse.sx * s.z * 28) % w) + w) % w;
         const y = (((s.y - scroll * s.z * 0.18 - mouse.sy * s.z * 28) % h) + h) % h;
         const tw = still ? 0.7 : 0.55 + 0.45 * Math.sin(t * 0.0012 * (0.5 + s.z) + s.p);
-        b.globalAlpha = tw * (0.25 + s.z * 0.45);
+        b.globalAlpha = tw * (0.15 + s.z * 0.35);
         if (s.big) sparkle(x, y, 2 + s.z * 3.5);
         else b.fillRect(x, y, s.z > 0.75 ? 2 : 1, s.z > 0.75 ? 2 : 1);
       }
       if (!still) {
-        if (!shot && Math.random() < 0.0025) shot = { x: Math.random() * w * 0.8 + w * 0.2, y: Math.random() * h * 0.4, life: 1 };
+        if (!shot && Math.random() < 0.0008) shot = { x: Math.random() * w * 0.8 + w * 0.2, y: Math.random() * h * 0.4, life: 1 };
         if (shot) {
           for (let i = 0; i < 18; i++) {
             b.globalAlpha = shot.life * (1 - i / 18) * 0.8;
@@ -91,10 +91,11 @@ export function Sky() {
       frame = requestAnimationFrame(loop);
     };
     let px = 0, py = 0;
+    const trailOn = false;
     const onMove = (e: PointerEvent) => {
       mouse.x = e.clientX / w - 0.5;
       mouse.y = e.clientY / h - 0.5;
-      if (fine && Math.hypot(e.clientX - px, e.clientY - py) > 9) {
+      if (fine && trailOn && Math.hypot(e.clientX - px, e.clientY - py) > 9) {
         px = e.clientX;
         py = e.clientY;
         trail.push({
@@ -116,7 +117,6 @@ export function Sky() {
     window.addEventListener("resize", resize);
     if (!still) {
       window.addEventListener("pointermove", onMove, { passive: true });
-      window.addEventListener("pointerdown", onClick, { passive: true });
       frame = requestAnimationFrame(loop);
     }
     return () => {
@@ -130,13 +130,13 @@ export function Sky() {
   return (
     <>
       <canvas ref={back} className="sky sky-back" aria-hidden="true" />
-      <canvas ref={front} className="sky sky-front" aria-hidden="true" />
+      <canvas ref={front} className="sky sky-front" aria-hidden="true" hidden />
     </>
   );
 }
 
 /** 3D tilt toward the pointer, with a dithered spotlight that follows it. */
-export function Tilt({ children, className = "", max = 7 }: { children: ReactNode; className?: string; max?: number }) {
+export function Tilt({ children, className = "", max = 0 }: { children: ReactNode; className?: string; max?: number }) {
   const reduce = useReducedMotion();
   const rx = useSpring(useMotionValue(0), { stiffness: 180, damping: 18 });
   const ry = useSpring(useMotionValue(0), { stiffness: 180, damping: 18 });
@@ -167,38 +167,18 @@ export function Tilt({ children, className = "", max = 7 }: { children: ReactNod
 }
 
 /** Pulls its child slightly toward the pointer. */
-export function Magnetic({ children, strength = 0.28 }: { children: ReactNode; strength?: number }) {
-  const reduce = useReducedMotion();
-  const x = useSpring(useMotionValue(0), { stiffness: 220, damping: 14 });
-  const y = useSpring(useMotionValue(0), { stiffness: 220, damping: 14 });
-  return (
-    <motion.span
-      className="magnetic"
-      style={{ x, y }}
-      onPointerMove={(e) => {
-        if (reduce || e.pointerType !== "mouse") return;
-        const r = e.currentTarget.getBoundingClientRect();
-        x.set((e.clientX - r.left - r.width / 2) * strength);
-        y.set((e.clientY - r.top - r.height / 2) * strength);
-      }}
-      onPointerLeave={() => {
-        x.set(0);
-        y.set(0);
-      }}
-    >
-      {children}
-    </motion.span>
-  );
+export function Magnetic({ children }: { children: ReactNode; strength?: number }) {
+  return <span className="magnetic">{children}</span>;
 }
 
 export function Reveal({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: 28, filter: "blur(6px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)", transitionEnd: { filter: "none" } }}
+      initial={{ opacity: 0, y: 14 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.7, delay, ease: [0.2, 0.7, 0.2, 1] }}
+      transition={{ duration: 0.55, delay, ease: [0.2, 0.7, 0.2, 1] }}
     >
       {children}
     </motion.div>

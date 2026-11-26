@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Art } from "@/components/fx";
-import { PixelText } from "@/components/pixel-text";
 import { Address, ChainError, Empty, IndexerNote, Loading, PageHead, Split, StatusBadge } from "@/components/ui";
 import { pct, usd } from "@/lib/format";
 import { useManagers } from "@/lib/hooks";
@@ -44,7 +43,7 @@ export function Scoreboard() {
 
   return (
     <div className="page">
-      <PageHead title={<PixelText lines={["Scoreboard"]} />}
+      <PageHead title="Scoreboard" eyebrow="Managers"
         lead="Every number here was written by the contracts at settlement. Managers cannot report or edit their own results."
         art={<Art name="torii" className="head-art" />} />
       {score.isError && <IndexerNote />}

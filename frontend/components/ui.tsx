@@ -63,7 +63,7 @@ export function Panel({ title, action, children, className = "" }: { title?: str
 export function Stat({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode }) {
   return (
     <div className="stat">
-      <dt><Star size={9} />{label}</dt>
+      <dt>{label}</dt>
       <dd>{value}</dd>
       {hint && <dd className="stat-hint">{hint}</dd>}
     </div>
@@ -104,7 +104,7 @@ export function Address({ value, href }: { value: string; href?: string }) {
         navigator.clipboard?.writeText(value);
         setCopied(true);
         setTimeout(() => setCopied(false), 1400);
-      }}>{copied ? "✓" : "⧉"}</button>
+      }}>{copied ? "Copied" : "Copy"}</button>
     </span>
   );
 }
@@ -156,15 +156,29 @@ export function Split({ stake, backed }: { stake: number; backed: number }) {
   );
 }
 
-export function PageHead({ title, lead, art, children }: { title: ReactNode; lead: ReactNode; art?: ReactNode; children?: ReactNode }) {
+export function PageHead({ title, lead, eyebrow, art, children }: {
+  title: ReactNode; lead: ReactNode; eyebrow?: ReactNode; art?: ReactNode; children?: ReactNode;
+}) {
   return (
     <header className="page-head">
       <div className="page-head-text">
-        {title}
-        <p className="lead">{lead}</p>
+        {eyebrow && <p className="eyebrow">{eyebrow}</p>}
+        <h1 className="page-title">{title}</h1>
+        <div className="lead">{lead}</div>
         {children}
       </div>
       {art}
+    </header>
+  );
+}
+
+/** Eyebrow, heading and lead used at the top of every landing section. */
+export function SectionHead({ eyebrow, title, lead, center = false }: { eyebrow: string; title: ReactNode; lead?: ReactNode; center?: boolean }) {
+  return (
+    <header className={`section-head ${center ? "section-head-center" : ""}`}>
+      <p className="eyebrow">{eyebrow}</p>
+      <h2 className="section-title">{title}</h2>
+      {lead && <p className="lead">{lead}</p>}
     </header>
   );
 }

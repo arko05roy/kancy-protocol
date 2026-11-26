@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, motion, useScroll, useSpring } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { DEPLOYMENT, EPOCH_LENGTH, EXPLORER, settler } from "@/lib/contracts";
 import { duration, short } from "@/lib/format";
@@ -10,18 +10,16 @@ import { useNow, useProtocol } from "@/lib/hooks";
 import { useTx } from "@/lib/tx";
 import { Art } from "./fx";
 import { TxButton } from "./ui";
-import { WalletButton } from "./wallet";
 
 const LINKS = [
-  ["/vaults", "Vaults"],
-  ["/managers", "Scoreboard"],
-  ["/portfolio", "Portfolio"],
-  ["/manage", "Manage"],
-  ["/curate", "Curate"],
-  ["/faucet", "Faucet"],
+  ["/#cover", "How it works"],
+  ["/#roles", "Roles"],
+  ["/#epoch", "Lifecycle"],
+  ["/#builders", "Developers"],
+  ["/deck", "Deck"],
 ] as const;
 
-function Mark() {
+export function Mark() {
   return (
     <svg className="mark" viewBox="0 0 40 40" aria-hidden="true">
       <g fill="none" stroke="currentColor">
@@ -36,8 +34,6 @@ function Mark() {
 export function Nav() {
   const path = usePathname();
   const [open, setOpen] = useState(false);
-  const { scrollYProgress } = useScroll();
-  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 24 });
   useEffect(() => setOpen(false), [path]);
 
   return (
@@ -48,31 +44,21 @@ export function Nav() {
           <span><b>kancy</b><small>PROTOCOL</small></span>
         </Link>
         <div id="nav-links" className={`nav-links ${open ? "open" : ""}`}>
-          {LINKS.map(([href, label]) => {
-            const on = path === href || path.startsWith(`${href}/`);
-            return (
-              <Link key={href} href={href} aria-current={on ? "page" : undefined}>
-                {label}
-                {on && <motion.i layoutId="nav-line" className="nav-line" transition={{ type: "spring", stiffness: 380, damping: 32 }} />}
-              </Link>
-            );
-          })}
+          {LINKS.map(([href, label]) => <Link key={href} href={href} onClick={() => setOpen(false)}>{label}</Link>)}
         </div>
         <div className="nav-tools">
-          <EpochStatus />
-          <WalletButton />
+          <Link href="/dashboard" className="btn btn-solid btn-small">Launch app <span className="arrow" aria-hidden="true">→</span></Link>
           <button type="button" className="nav-toggle" aria-expanded={open} aria-controls="nav-links" aria-label="Menu" onClick={() => setOpen(!open)}>
             <i /><i />
           </button>
         </div>
       </nav>
-      <motion.i className="nav-progress" style={{ scaleX: progress }} aria-hidden="true" />
     </header>
   );
 }
 
 /** Compact epoch countdown in the navbar. Opens a panel where anyone can settle an ended epoch (PRD §4, Keeper). */
-function EpochStatus() {
+export function EpochStatus() {
   const { epoch, endsAt } = useProtocol();
   const now = useNow();
   const path = usePathname();
@@ -123,23 +109,44 @@ function EpochStatus() {
   );
 }
 
+const FOOTER = [
+  ["Product", [["/dashboard", "Dashboard"], ["/vaults", "Vaults"], ["/managers", "Scoreboard"], ["/portfolio", "Portfolio"]]],
+  ["Participate", [["/manage", "Manager console"], ["/curate", "Create a vault"], ["/faucet", "Testnet faucet"], ["/deck", "Pitch deck"]]],
+] as const;
+
 export function Footer() {
   return (
     <footer className="footer">
       <Art name="planet" className="footer-planet" depth={20} />
       <div className="footer-grid">
-        <div>
+        <div className="footer-about">
+          <Link href="/" className="brand">
+            <Mark />
+            <span><b>kancy</b><small>PROTOCOL</small></span>
+          </Link>
           <p className="footer-line">Managed Uniswap liquidity, backed by the Manager’s own capital.</p>
-          <p className="muted">A Uniswap v4 hook and vault system on Unichain Sepolia. Testnet only, unaudited, no real funds.</p>
         </div>
-        <dl className="contracts">
-          {DEPLOYMENT.map(([label, address]) => (
-            <div key={label}>
-              <dt>{label}</dt>
-              <dd><a href={`${EXPLORER}/address/${address}`} target="_blank" rel="noreferrer">{short(address)} ↗</a></dd>
-            </div>
-          ))}
-        </dl>
+        {FOOTER.map(([title, links]) => (
+          <nav key={title} className="footer-col" aria-label={title}>
+            <h2>{title}</h2>
+            <ul>{links.map(([href, label]) => <li key={href}><Link href={href}>{label}</Link></li>)}</ul>
+          </nav>
+        ))}
+        <div className="footer-col footer-contracts">
+          <h2>Contracts</h2>
+          <dl className="contracts">
+            {DEPLOYMENT.map(([label, address]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd><a href={`${EXPLORER}/address/${address}`} target="_blank" rel="noreferrer">{short(address)} ↗</a></dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+      <div className="footer-bar">
+        <p>© {new Date().getFullYear()} Kancy Protocol</p>
+        <p>Unichain Sepolia testnet · Unaudited · No real funds</p>
       </div>
     </footer>
   );

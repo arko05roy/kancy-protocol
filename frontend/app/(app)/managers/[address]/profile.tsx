@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import type { Address as Hex } from "viem";
 import { LineChart, RangeBar } from "@/components/chart";
 import { Reveal, Tilt } from "@/components/fx";
-import { PixelText } from "@/components/pixel-text";
 import { ResultCard } from "@/components/result-card";
 import { Address, ChainError, Empty, IndexerNote, Loading, PageHead, Panel, Split, Stat, StatusBadge } from "@/components/ui";
 import { EXPLORER, Status, STATUS } from "@/lib/contracts";
@@ -38,7 +37,7 @@ export function ManagerProfile({ address }: { address: Hex }) {
 
   return (
     <div className="page">
-      <PageHead title={<PixelText lines={[m.name]} rows={22} maxCell={3.4} />}
+      <PageHead title={m.name} eyebrow="Manager profile"
         lead={<>Manager <Address value={address} /></>}>
         <StatusBadge status={m.status} />
       </PageHead>
